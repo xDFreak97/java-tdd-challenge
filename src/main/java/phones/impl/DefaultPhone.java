@@ -36,6 +36,7 @@ public class DefaultPhone implements ConnectedPhone {
 
     @Override
     public void pushGreen() {
+        this.status = PhoneStatus.CALLING;
     }
 
     @Override
@@ -50,6 +51,7 @@ public class DefaultPhone implements ConnectedPhone {
     public void receive(CallIncoming request) {
         incoming = request;
         call = incoming.accept(this::onMessageReceive, this::onCallEnd);
+        this.status = PhoneStatus.RINGING;
     }
 
     @Override
