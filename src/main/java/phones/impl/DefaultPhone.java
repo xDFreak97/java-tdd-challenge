@@ -32,11 +32,18 @@ public class DefaultPhone implements ConnectedPhone {
     @Override
     public void dial(String number) {
         outgoing = socket.call(number, this::onCallReject, this::onCallAccept, this::onMessageReceive, this::onCallEnd);
+        this.status = PhoneStatus.CALLING;
     }
 
     @Override
     public void pushGreen() {
-        this.status = PhoneStatus.CALLING;
+        if (this.status == PhoneStatus.IDLE) {
+            this.status = PhoneStatus.CALLING;
+        }
+        else if (this.status == PhoneStatus.RINGING) {
+            this.status = PhoneStatus.IN_CALL;
+            call = incoming.accept(this::onMessageReceive, this::onCallEnd);
+        }
     }
 
     @Override
@@ -45,13 +52,13 @@ public class DefaultPhone implements ConnectedPhone {
 
     @Override
     public void send(String message) {
+        call.send(message);
     }
 
     @Override
     public void receive(CallIncoming request) {
         incoming = request;
-        call = incoming.accept(this::onMessageReceive, this::onCallEnd);
-        this.status = PhoneStatus.RINGING;
+        this.status = PhoneStatus.RINGING;    
     }
 
     @Override
@@ -62,6 +69,8 @@ public class DefaultPhone implements ConnectedPhone {
     }
     
     protected void onCallAccept(Call call) {
+        this.status = PhoneStatus.IN_CALL;
+        this.call = call;
     }
     
     protected void onMessageReceive(String message) {
